@@ -1,5 +1,5 @@
 <resources>
-    <string name="app_name">PlateCalculator</string>
+    <string name="app_name">Plate Calculator</string>
     <string name="barbell_content_desc">Barbell</string>
     <string name="barbell_weight_fill">Choose Weight</string>
     <string name="very_strong_boi_weight_entered">Oh wow you must have broken a world record</string>
