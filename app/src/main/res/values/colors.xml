@@ -1,0 +1,15 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <color name="colorPrimary">#325320</color>
+    <color name="colorPrimaryDark">#4b5320</color>
+    <color name="colorAccent">#20532f</color>
+    <color name="white">#FFFFFF</color>
+    <color name="black">#000000</color>
+    <color name="weight_plate_1">#FFD73545</color>
+    <color name="weight_plate_2">#FF1262A4</color>
+    <color name="weight_plate_3">#FFFED600</color>
+    <color name="weight_plate_4">#FF22B133</color>
+    <color name="weight_plate_5">#d6d6d6</color>
+    <color name="weight_plate_6">#FF242424</color>
+    <color name="weight_plate_7">#FF242424</color>
+</resources>

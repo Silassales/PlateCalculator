@@ -1,0 +1,10 @@
+<resources>
+    <string name="app_name">PlateCalculator</string>
+    <string name="barbell_content_desc">Barbell</string>
+    <string name="barbell_weight_fill">Choose Weight</string>
+    <string name="very_strong_boi_weight_entered">Oh wow you must have broken a world record</string>
+    <string name="KG">KG</string>
+    <string name="LB">LB</string>
+    <string name="use25SwitchTextKG">Use 25KG?</string>
+    <string name="use25SwitchTextLB">Use 55LB?</string>
+</resources>
