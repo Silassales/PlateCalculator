@@ -8,4 +8,5 @@
     <string name="use25SwitchTextKG">Use 25KG?</string>
     <string name="use25SwitchTextLB">Use 55LB?</string>
     <string name="storedWeight">weight</string>
+    <string name="storedUnit">unit</string>
 </resources>

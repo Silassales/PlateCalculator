@@ -8,38 +8,44 @@
     android:layout_margin="@dimen/margin">
 
     <ImageView
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:id="@+id/barbell_iv"
-        app:layout_constraintHeight_percent="0.5"
+        android:layout_width="0dp"
+        android:layout_height="0dp"
+        android:id="@+id/barbell_iv_bar"
+
         app:layout_constraintTop_toTopOf="parent"
-        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintBottom_toTopOf="@id/bottom_of_barbell_guideline"
+        app:layout_constraintStart_toStartOf="@id/plate_start_guideline"
+        app:layout_constraintEnd_toEndOf="parent"
         android:contentDescription="@string/barbell_content_desc"
-        app:srcCompat="@drawable/ic_barbell"
+        app:srcCompat="@drawable/ic_barbell_bar"
         />
 
-    <androidx.constraintlayout.widget.Guideline
-        android:id="@+id/top_plate_weight_label_guideline_bottom"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:orientation="horizontal"
-        app:layout_constraintGuide_begin="191dp" />
+    <ImageView
+        android:layout_width="0dp"
+        android:layout_height="0dp"
+        android:id="@+id/barbell_cuff_iv"
+
+        app:layout_constraintTop_toTopOf="parent"
+        app:layout_constraintBottom_toBottomOf="@id/bottom_of_barbell_guideline"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintEnd_toEndOf="@id/plate_start_guideline"
+        android:contentDescription="@string/barbell_content_desc"
+        app:srcCompat="@drawable/ic_barbell_cuff"
+        />
 
     <androidx.constraintlayout.widget.Guideline
         android:id="@+id/plate_start_guideline"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:orientation="vertical"
-        app:layout_constraintGuide_begin="76dp" />
+        app:layout_constraintGuide_percent=".2" />
 
-    <LinearLayout
-        android:id="@+id/plate_weight_label_layout"
+    <androidx.constraintlayout.widget.Guideline
+        android:id="@+id/bottom_of_barbell_guideline"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:orientation="vertical"
-        app:layout_constraintBottom_toTopOf="@id/top_plate_weight_label_guideline_bottom"
-        app:layout_constraintEnd_toStartOf="@id/plate_start_guideline"
-        app:layout_constraintStart_toStartOf="parent">
+        android:orientation="horizontal"
+        app:layout_constraintGuide_percent=".75"/>
 
     <TextView
         android:id="@+id/plate_weight_label1"
@@ -48,6 +54,12 @@
         android:background="@color/weight_plate_1"
         android:textColor="@color/white"
         android:gravity="center"
+
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintEnd_toEndOf="@id/plate_start_guideline"
+        app:layout_constraintTop_toTopOf="parent"
+        app:layout_constraintBottom_toTopOf="@+id/plate_weight_label2"
+        app:layout_constraintVertical_chainStyle="packed"
         />
 
     <TextView
@@ -57,6 +69,12 @@
         android:background="@color/weight_plate_2"
         android:textColor="@color/white"
         android:gravity="center"
+
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintEnd_toEndOf="@id/plate_start_guideline"
+        app:layout_constraintTop_toBottomOf="@id/plate_weight_label1"
+        app:layout_constraintBottom_toTopOf="@+id/plate_weight_label3"
+        app:layout_constraintVertical_chainStyle="packed"
         />
 
     <TextView
@@ -66,6 +84,12 @@
         android:background="@color/weight_plate_3"
         android:textColor="@color/black"
         android:gravity="center"
+
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintEnd_toEndOf="@id/plate_start_guideline"
+        app:layout_constraintTop_toBottomOf="@id/plate_weight_label2"
+        app:layout_constraintBottom_toTopOf="@+id/plate_weight_label4"
+        app:layout_constraintVertical_chainStyle="packed"
         />
 
     <TextView
@@ -75,105 +99,103 @@
         android:background="@color/weight_plate_4"
         android:textColor="@color/white"
         android:gravity="center"
+
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintEnd_toEndOf="@id/plate_start_guideline"
+        app:layout_constraintTop_toBottomOf="@id/plate_weight_label3"
+        app:layout_constraintBottom_toTopOf="@+id/plate_weight_label5"
+        app:layout_constraintVertical_chainStyle="packed"
         />
 
-    </LinearLayout>
-
     <androidx.constraintlayout.widget.ConstraintLayout
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
+        android:layout_width="0dp"
+        android:layout_height="0dp"
         android:id="@+id/barbell_plates_constraint_layout"
-        app:layout_constraintTop_toTopOf="@+id/barbell_iv"
-        app:layout_constraintBottom_toBottomOf="@+id/barbell_iv"
-        app:layout_constraintStart_toStartOf="@id/plate_start_guideline" >
+        app:layout_constraintTop_toTopOf="parent"
+        app:layout_constraintBottom_toBottomOf="@id/bottom_of_barbell_guideline"
+        app:layout_constraintStart_toStartOf="@id/plate_start_guideline"
+        app:layout_constraintEnd_toEndOf="parent">
 
     </androidx.constraintlayout.widget.ConstraintLayout>
 
-    <androidx.constraintlayout.widget.Guideline
-        android:id="@+id/bottom_plate_weight_label_guideline_top"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:orientation="horizontal"
-        app:layout_constraintGuide_begin="281dp" />
+    <TextView
+        android:id="@+id/plate_weight_label5"
+        android:layout_width="@dimen/plate_weight_label_size"
+        android:layout_height="@dimen/plate_weight_label_size"
+        android:background="@color/weight_plate_5"
+        android:textColor="@color/black"
+        android:gravity="center"
 
-    <LinearLayout
-        android:id="@+id/plate_plate_weight_layout2"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:orientation="vertical"
-        app:layout_constraintEnd_toStartOf="@id/plate_start_guideline"
         app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toTopOf="@id/bottom_plate_weight_label_guideline_top">
+        app:layout_constraintEnd_toEndOf="@id/plate_start_guideline"
+        app:layout_constraintTop_toBottomOf="@id/plate_weight_label4"
+        app:layout_constraintBottom_toTopOf="@+id/plate_weight_label6"
+        app:layout_constraintVertical_chainStyle="packed"
+        />
 
-        <TextView
-            android:id="@+id/plate_weight_label5"
-            android:layout_width="@dimen/plate_weight_label_size"
-            android:layout_height="@dimen/plate_weight_label_size"
-            android:background="@color/weight_plate_5"
-            android:textColor="@color/black"
-            android:gravity="center"
-            />
+    <TextView
+        android:id="@+id/plate_weight_label6"
+        android:layout_width="@dimen/plate_weight_label_size"
+        android:layout_height="@dimen/plate_weight_label_size"
+        android:background="@color/weight_plate_6"
+        android:textColor="@color/white"
+        android:gravity="center"
 
-        <TextView
-            android:id="@+id/plate_weight_label6"
-            android:layout_width="@dimen/plate_weight_label_size"
-            android:layout_height="@dimen/plate_weight_label_size"
-            android:background="@color/weight_plate_6"
-            android:textColor="@color/white"
-            android:gravity="center"
-            />
-
-        <TextView
-            android:id="@+id/plate_weight_label7"
-            android:layout_width="@dimen/plate_weight_label_size"
-            android:layout_height="@dimen/plate_weight_label_size"
-            android:background="@color/weight_plate_7"
-            android:textColor="@color/white"
-            android:gravity="center"
-            />
-
-
-    </LinearLayout>
-
-    <androidx.constraintlayout.widget.ConstraintLayout
-        android:id="@+id/constraintLayout"
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:orientation="horizontal"
         app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintEnd_toEndOf="@id/plate_start_guideline"
+        app:layout_constraintTop_toBottomOf="@id/plate_weight_label5"
+        app:layout_constraintBottom_toTopOf="@+id/plate_weight_label7"
+        app:layout_constraintVertical_chainStyle="packed"
+        />
+
+    <TextView
+        android:id="@+id/plate_weight_label7"
+        android:layout_width="@dimen/plate_weight_label_size"
+        android:layout_height="@dimen/plate_weight_label_size"
+        android:background="@color/weight_plate_7"
+        android:textColor="@color/white"
+        android:gravity="center"
+
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintEnd_toEndOf="@id/plate_start_guideline"
+        app:layout_constraintTop_toBottomOf="@id/plate_weight_label6"
+        app:layout_constraintBottom_toBottomOf="@id/bottom_of_barbell_guideline"
+        app:layout_constraintVertical_chainStyle="packed"
+        />
+
+    <EditText
+        android:id="@+id/barbell_weight_edittext"
+        android:layout_width="0dp"
+        android:layout_height="wrap_content"
+        android:inputType="numberDecimal"
+        android:textAlignment="viewEnd"
+        android:gravity="end"
+
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintEnd_toStartOf="@id/barbell_weight_unit_spinner"
+        app:layout_constraintTop_toTopOf="@id/bottom_of_barbell_guideline"
         app:layout_constraintBottom_toBottomOf="parent"
-        android:layout_margin="@dimen/margin">
 
-        <EditText
-            android:id="@+id/barbell_weight_edittext"
-            android:layout_width="0dp"
-            android:layout_height="wrap_content"
-            android:inputType="numberDecimal"
-            android:textAlignment="viewEnd"
-            android:gravity="end"
-            app:layout_constraintWidth_percent="0.45"
-            app:layout_constraintStart_toStartOf="parent"
-            app:layout_constraintTop_toTopOf="parent"
-            android:hint="@string/barbell_weight_fill" />
+        android:hint="@string/barbell_weight_fill" />
 
-        <Spinner
-            android:id="@+id/barbell_weight_unit_spinner"
-            android:layout_width="0dp"
-            android:layout_height="wrap_content"
-            app:layout_constraintWidth_percent="0.25"
-            app:layout_constraintEnd_toStartOf="@+id/use_25kg_switch"
-            app:layout_constraintBaseline_toBaselineOf="@+id/barbell_weight_edittext"
-            />
+    <Spinner
+        android:id="@+id/barbell_weight_unit_spinner"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
 
-        <Switch
-            android:id="@+id/use_25kg_switch"
-            android:layout_width="0dp"
-            android:layout_height="wrap_content"
-            app:layout_constraintWidth_percent="0.3"
-            app:layout_constraintEnd_toEndOf="parent"
-            app:layout_constraintBaseline_toBaselineOf="@+id/barbell_weight_edittext"/>
+        app:layout_constraintTop_toTopOf="@id/barbell_weight_edittext"
+        app:layout_constraintBottom_toBottomOf="@id/barbell_weight_edittext"
+        app:layout_constraintEnd_toStartOf="@+id/use_25kg_switch"/>
 
-    </androidx.constraintlayout.widget.ConstraintLayout>
+    <Switch
+        android:id="@+id/use_25kg_switch"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+
+        app:layout_constraintTop_toTopOf="@id/barbell_weight_edittext"
+        app:layout_constraintBottom_toBottomOf="@+id/barbell_weight_edittext"
+        app:layout_constraintEnd_toEndOf="parent" />
+
 
 
 </androidx.constraintlayout.widget.ConstraintLayout>

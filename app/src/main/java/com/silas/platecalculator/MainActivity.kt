@@ -3,6 +3,7 @@ package com.silas.platecalculator
 import android.app.Activity
 import android.content.Context
 import android.content.SharedPreferences
+import android.content.res.Configuration
 import android.opengl.Visibility
 import androidx.appcompat.app.AppCompatActivity
 import android.os.Bundle
@@ -34,6 +35,7 @@ import com.silas.platecalculator.Constants.PLATE6_LB
 import com.silas.platecalculator.Constants.PLATE7_KG
 import com.silas.platecalculator.Constants.PLATE7_LB
 import com.silas.platecalculator.Constants.SLOT_MARGIN
+import kotlinx.android.synthetic.main.activity_main.*
 import java.lang.NumberFormatException
 import kotlin.math.roundToInt
 
@@ -43,6 +45,7 @@ class MainActivity : AppCompatActivity(), AdapterView.OnItemSelectedListener {
 
     lateinit var prefs: SharedPreferences
     lateinit var weightEditText: EditText
+    lateinit var unitSpinner: Spinner
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -50,11 +53,10 @@ class MainActivity : AppCompatActivity(), AdapterView.OnItemSelectedListener {
 
         prefs = getPreferences(Context.MODE_PRIVATE)
         weightEditText = findViewById(R.id.barbell_weight_edittext)
-        currentUnit  = getString(R.string.KG)
 
         setupWeightPlateLabels()
 
-        val spinner: Spinner = findViewById(R.id.barbell_weight_unit_spinner);
+        unitSpinner = findViewById(R.id.barbell_weight_unit_spinner)
         // Create an ArrayAdapter using the string array and a default spinner layout
         ArrayAdapter.createFromResource(
             this,
@@ -64,9 +66,9 @@ class MainActivity : AppCompatActivity(), AdapterView.OnItemSelectedListener {
             // Specify the layout to use when the list of choices appears
             adapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item)
             // Apply the adapter to the spinner
-            spinner.adapter = adapter
+            unitSpinner.adapter = adapter
         }
-        spinner.onItemSelectedListener = this
+        unitSpinner.onItemSelectedListener = this
 
         weightEditText.addTextChangedListener(object:
             TextWatcher {
@@ -96,6 +98,7 @@ class MainActivity : AppCompatActivity(), AdapterView.OnItemSelectedListener {
         super.onResume()
 
         val savedWeight = prefs.getFloat(getString(R.string.storedWeight), 0.0F)
+        currentUnit = prefs.getString(getString(R.string.storedUnit), getString(R.string.KG)).toString()
         if(savedWeight != 0.0F) {
             weightEditText.setText(savedWeight.toString())
             updateBarbell()
@@ -110,6 +113,8 @@ class MainActivity : AppCompatActivity(), AdapterView.OnItemSelectedListener {
         } catch (e: NumberFormatException) {
             Log.e("onPause", "weight edit text does not contain a number")
         }
+
+        prefs.edit().putString(getString(R.string.storedUnit), unitSpinner.selectedItem.toString()).apply()
     }
 
     private fun setup25Switch() {
@@ -138,12 +143,12 @@ class MainActivity : AppCompatActivity(), AdapterView.OnItemSelectedListener {
     override fun onItemSelected(parent: AdapterView<*>?, view: View?, position: Int, id: Long) {
         // called everytime the view is redrawn (orientation change, when the activity start, etc), so
         // we need to make sure we actually want to covert the weights
-        if(parent?.getItemAtPosition(position).toString() != currentUnit) {
+        if(currentUnit != parent?.getItemAtPosition(position)) {
             // try to convert the current weight
             try {
+                currentUnit = parent?.getItemAtPosition(position).toString()
                 var currentWeight = weightEditText.text.toString().toDouble()
                 val weightUnit = parent?.getItemAtPosition(position).toString()
-                currentUnit = weightUnit
 
                 if (weightUnit == getString(R.string.LB)) { // we are going from LG -> KG
                     currentWeight *= 2.2
@@ -238,7 +243,9 @@ class MainActivity : AppCompatActivity(), AdapterView.OnItemSelectedListener {
             imageView.id = plateId
 
             /* setup image width and height */
-            imageView.layoutParams = ViewGroup.LayoutParams(ViewGroup.LayoutParams.WRAP_CONTENT, ViewGroup.LayoutParams.WRAP_CONTENT)
+            imageView.layoutParams = ViewGroup.LayoutParams(ViewGroup.LayoutParams.WRAP_CONTENT, 0)
+            imageView.scaleType = ImageView.ScaleType.CENTER_CROP
+
             imageView.setImageResource(resourceIdToSet)
             constraintLayout.addView(imageView)
 
@@ -335,7 +342,9 @@ class MainActivity : AppCompatActivity(), AdapterView.OnItemSelectedListener {
             imageView.id = plateId
 
             /* setup image width and height */
-            imageView.layoutParams = ViewGroup.LayoutParams(ViewGroup.LayoutParams.WRAP_CONTENT, ViewGroup.LayoutParams.WRAP_CONTENT)
+            imageView.layoutParams = ViewGroup.LayoutParams(ViewGroup.LayoutParams.WRAP_CONTENT, 0)
+            imageView.scaleType = ImageView.ScaleType.CENTER_CROP
+            
             imageView.setImageResource(resourceIdToSet)
             constraintLayout.addView(imageView)
 
