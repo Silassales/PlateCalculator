@@ -150,9 +150,20 @@
         app:layout_constraintStart_toStartOf="@id/plate_weight_label5"
         app:layout_constraintTop_toBottomOf="@id/plate_weight_label6" />
 
+    <SeekBar
+        android:id="@+id/weight_seek_bar"
+        android:layout_width="0dp"
+        android:layout_height="wrap_content"
+
+        app:layout_constraintTop_toBottomOf="@id/bottom_of_barbell_guideline"
+        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintEnd_toStartOf="@id/barbell_weight_edittext"
+        app:layout_constraintStart_toStartOf="parent"
+        />
+
     <EditText
         android:id="@+id/barbell_weight_edittext"
-        android:layout_width="0dp"
+        android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:gravity="end"
         android:hint="@string/barbell_weight_fill"
@@ -161,7 +172,7 @@
         android:textAlignment="viewEnd"
         app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintEnd_toStartOf="@id/barbell_weight_unit_spinner"
-        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintStart_toEndOf="@+id/weight_seek_bar"
         app:layout_constraintTop_toTopOf="@id/bottom_of_barbell_guideline" />
 
     <Spinner
@@ -182,9 +193,10 @@
         android:text="@string/use25SwitchTextKG"
 
         app:layout_constraintBottom_toBottomOf="@id/barbell_weight_edittext"
-        app:layout_constraintEnd_toEndOf="@id/end_of_barbell_guideline"
+        app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toEndOf="@id/barbell_weight_unit_spinner"
         app:layout_constraintTop_toTopOf="@id/barbell_weight_edittext" />
+
 
     <androidx.constraintlayout.widget.ConstraintLayout
         android:id="@+id/barbell_plates_constraint_layout"

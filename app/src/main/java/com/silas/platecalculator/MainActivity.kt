@@ -5,6 +5,7 @@ import android.content.Context
 import android.content.SharedPreferences
 import android.content.res.Configuration
 import android.opengl.Visibility
+import android.os.Build
 import androidx.appcompat.app.AppCompatActivity
 import android.os.Bundle
 import android.text.Editable
@@ -20,6 +21,8 @@ import com.google.android.material.snackbar.Snackbar
 import com.silas.platecalculator.Constants.BARBELL_WEIGHT_KG
 import com.silas.platecalculator.Constants.BARBELL_WEIGHT_LB
 import com.silas.platecalculator.Constants.FIRST_SLOT_MARGIN
+import com.silas.platecalculator.Constants.MAX_WEIGHT_KG
+import com.silas.platecalculator.Constants.MAX_WEIGHT_LB
 import com.silas.platecalculator.Constants.PLATE1_KG
 import com.silas.platecalculator.Constants.PLATE1_LB
 import com.silas.platecalculator.Constants.PLATE2_KG
@@ -46,6 +49,7 @@ class MainActivity : AppCompatActivity(), AdapterView.OnItemSelectedListener {
     lateinit var prefs: SharedPreferences
     lateinit var weightEditText: EditText
     lateinit var unitSpinner: Spinner
+    lateinit var weightSeekBar: SeekBar
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -53,6 +57,8 @@ class MainActivity : AppCompatActivity(), AdapterView.OnItemSelectedListener {
 
         prefs = getPreferences(Context.MODE_PRIVATE)
         weightEditText = findViewById(R.id.barbell_weight_edittext)
+        weightSeekBar = findViewById(R.id.weight_seek_bar)
+        currentUnit = prefs.getString(getString(R.string.storedUnit), getString(R.string.KG)).toString()
 
         setupWeightPlateLabels()
 
@@ -79,6 +85,33 @@ class MainActivity : AppCompatActivity(), AdapterView.OnItemSelectedListener {
             override fun onTextChanged(s: CharSequence?, start: Int, before: Int, count: Int) {
                 updateBarbell()
             }
+        })
+
+        weightSeekBar.max = if(currentUnit == getString(R.string.KG)) {
+            MAX_WEIGHT_KG
+        } else {
+            MAX_WEIGHT_LB
+        }
+        try {
+            val weight = prefs.getFloat(getString(R.string.storedWeight), 0.0F)
+            weightSeekBar.progress = if(currentUnit == getString(R.string.KG)) {
+                weight.toInt()
+            } else {
+                weight.toInt()
+            }
+        } catch (e: NumberFormatException) {
+            e.printStackTrace()
+        }
+        weightSeekBar.setOnSeekBarChangeListener(object : SeekBar.OnSeekBarChangeListener {
+            override fun onProgressChanged(seekBar: SeekBar?, progress: Int, fromUser: Boolean) {
+                weightEditText.setText(progress.toString())
+                updateBarbell()
+            }
+
+            override fun onStartTrackingTouch(seekBar: SeekBar?) {}
+
+            override fun onStopTrackingTouch(seekBar: SeekBar?) {}
+
         })
 
         val use25KGSwitch = findViewById<Switch>(R.id.use_25kg_switch)
@@ -197,10 +230,8 @@ class MainActivity : AppCompatActivity(), AdapterView.OnItemSelectedListener {
         constraintLayout.removeAllViews()
 
         /* make sure too much doesn't crash the program */
-        if(weight > 550) {
-            val imm = getSystemService(Activity.INPUT_METHOD_SERVICE) as InputMethodManager
-            imm.hideSoftInputFromWindow(currentFocus?.windowToken, 0)
-            Snackbar.make(findViewById(R.id.plate_calc_constraint_layout), getString(R.string.very_strong_boi_weight_entered), Snackbar.LENGTH_SHORT).show()
+        if(weight > MAX_WEIGHT_KG) {
+            weightEditText.setText(MAX_WEIGHT_KG.toString())
             return
         }
 
@@ -296,10 +327,8 @@ class MainActivity : AppCompatActivity(), AdapterView.OnItemSelectedListener {
         constraintLayout.removeAllViews()
 
         /* make sure too much doesn't crash the program */
-        if(weight > 1200) {
-            val imm = getSystemService(Activity.INPUT_METHOD_SERVICE) as InputMethodManager
-            imm.hideSoftInputFromWindow(currentFocus?.windowToken, 0)
-            Snackbar.make(findViewById(R.id.plate_calc_constraint_layout), getString(R.string.very_strong_boi_weight_entered), Snackbar.LENGTH_SHORT).show()
+        if(weight > MAX_WEIGHT_LB) {
+            weightEditText.setText(MAX_WEIGHT_LB.toString())
             return
         }
 
@@ -344,7 +373,7 @@ class MainActivity : AppCompatActivity(), AdapterView.OnItemSelectedListener {
             /* setup image width and height */
             imageView.layoutParams = ViewGroup.LayoutParams(ViewGroup.LayoutParams.WRAP_CONTENT, 0)
             imageView.scaleType = ImageView.ScaleType.CENTER_CROP
-            
+
             imageView.setImageResource(resourceIdToSet)
             constraintLayout.addView(imageView)
 

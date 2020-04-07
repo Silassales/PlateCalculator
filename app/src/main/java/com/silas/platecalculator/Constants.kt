@@ -5,6 +5,9 @@ object Constants {
     const val BARBELL_WEIGHT_KG = 20
     const val BARBELL_WEIGHT_LB = 45
 
+    const val MAX_WEIGHT_KG = 400
+    const val MAX_WEIGHT_LB = 880
+
     /* barbell image */
     const val FIRST_SLOT_MARGIN = 15
     const val SLOT_MARGIN = 2
