@@ -2,6 +2,7 @@ package com.silas.platecalculator
 
 import android.app.Activity
 import android.content.Context
+import android.content.SharedPreferences
 import android.opengl.Visibility
 import androidx.appcompat.app.AppCompatActivity
 import android.os.Bundle
@@ -38,10 +39,18 @@ import kotlin.math.roundToInt
 
 class MainActivity : AppCompatActivity(), AdapterView.OnItemSelectedListener {
     private var use25KG: Boolean = true
+    private lateinit var currentUnit: String
+
+    lateinit var prefs: SharedPreferences
+    lateinit var weightEditText: EditText
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_main)
+
+        prefs = getPreferences(Context.MODE_PRIVATE)
+        weightEditText = findViewById(R.id.barbell_weight_edittext)
+        currentUnit  = getString(R.string.KG)
 
         setupWeightPlateLabels()
 
@@ -59,7 +68,7 @@ class MainActivity : AppCompatActivity(), AdapterView.OnItemSelectedListener {
         }
         spinner.onItemSelectedListener = this
 
-        findViewById<EditText>(R.id.barbell_weight_edittext).addTextChangedListener(object:
+        weightEditText.addTextChangedListener(object:
             TextWatcher {
             override fun afterTextChanged(s: Editable?) {}
 
@@ -80,6 +89,26 @@ class MainActivity : AppCompatActivity(), AdapterView.OnItemSelectedListener {
             updateBarbell()
 
             findViewById<TextView>(R.id.plate_weight_label1).visibility = if (isChecked) View.VISIBLE else View.INVISIBLE
+        }
+    }
+
+    override fun onResume() {
+        super.onResume()
+
+        val savedWeight = prefs.getFloat(getString(R.string.storedWeight), 0.0F)
+        if(savedWeight != 0.0F) {
+            weightEditText.setText(savedWeight.toString())
+            updateBarbell()
+        }
+    }
+
+    override fun onPause() {
+        super.onPause()
+
+        try {
+            prefs.edit().putFloat(getString(R.string.storedWeight), weightEditText.text.toString().toFloat()).apply()
+        } catch (e: NumberFormatException) {
+            Log.e("onPause", "weight edit text does not contain a number")
         }
     }
 
@@ -107,29 +136,32 @@ class MainActivity : AppCompatActivity(), AdapterView.OnItemSelectedListener {
     override fun onNothingSelected(parent: AdapterView<*>?) {}
 
     override fun onItemSelected(parent: AdapterView<*>?, view: View?, position: Int, id: Long) {
-        // try to convert the current weight
-        try {
-            val weightEditText  = findViewById<EditText>(R.id.barbell_weight_edittext)
-            var currentWeight = weightEditText.text.toString().toDouble()
-            val wtUnitSpinner = findViewById<Spinner>(R.id.barbell_weight_unit_spinner)
-            val weightUnit = wtUnitSpinner?.selectedItem ?: getString(R.string.KG)
+        // called everytime the view is redrawn (orientation change, when the activity start, etc), so
+        // we need to make sure we actually want to covert the weights
+        if(parent?.getItemAtPosition(position).toString() != currentUnit) {
+            // try to convert the current weight
+            try {
+                var currentWeight = weightEditText.text.toString().toDouble()
+                val weightUnit = parent?.getItemAtPosition(position).toString()
+                currentUnit = weightUnit
 
-            if(weightUnit == getString(R.string.LB)) { // we are going from LG -> KG
-                currentWeight *= 2.2
-            } else if(weightUnit == getString(R.string.KG)) { // we are going from KG -> LB
-                currentWeight /= 2.2
+                if (weightUnit == getString(R.string.LB)) { // we are going from LG -> KG
+                    currentWeight *= 2.2
+                } else if (weightUnit == getString(R.string.KG)) { // we are going from KG -> LB
+                    currentWeight /= 2.2
+                }
+
+                // round to the nearest .5
+                currentWeight = (currentWeight * 2).roundToInt() / 2.0
+
+                weightEditText.setText(currentWeight.toString())
+            } catch (e: NumberFormatException) {
+                Log.d("onItemSelected", "trying to parse current weight: $e")
             }
-
-            // round to the nearest .5
-            currentWeight = (currentWeight * 2).roundToInt() / 2.0
-
-            weightEditText.setText(currentWeight.toString())
-        } catch (e: NumberFormatException) {
-            Log.d("onItemSelected", "trying to parse current weight: $e")
+            setupWeightPlateLabels()
+            setup25Switch()
+            updateBarbell()
         }
-        setupWeightPlateLabels()
-        setup25Switch()
-        updateBarbell()
     }
 
     private fun updateBarbell(selectedUnit: String = "") {
@@ -147,7 +179,7 @@ class MainActivity : AppCompatActivity(), AdapterView.OnItemSelectedListener {
     }
 
     private fun updateBarbellKG(){
-        val weightEditText = findViewById<EditText>(R.id.barbell_weight_edittext);
+        val weightEditText = findViewById<EditText>(R.id.barbell_weight_edittext)
         val constraintLayout = findViewById<ConstraintLayout>(R.id.barbell_plates_constraint_layout)
         var resourceIdToSet: Int
         var previousPlateId: Int
@@ -172,8 +204,6 @@ class MainActivity : AppCompatActivity(), AdapterView.OnItemSelectedListener {
 
         /* adjust for just showing one half of the bar */
         weight /= 2
-
-
 
         while(weight > 0) {
             // first determine the icon we want to use
