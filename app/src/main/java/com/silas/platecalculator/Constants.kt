@@ -27,4 +27,6 @@ object Constants {
     const val PLATE5_LB = 10
     const val PLATE6_LB = 5
     const val PLATE7_LB = 2.5
+    val PLATE_KG_ARRAY = arrayListOf<Number>(PLATE1_KG, PLATE2_KG, PLATE3_KG, PLATE4_KG, PLATE5_KG, PLATE6_KG, PLATE7_KG)
+    val PLATE_LB_ARRAY = arrayListOf<Number>(PLATE1_LB, PLATE2_LB, PLATE3_LB, PLATE4_LB, PLATE5_LB, PLATE6_LB, PLATE7_LB)
 }

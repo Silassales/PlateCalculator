@@ -1,23 +1,18 @@
 package com.silas.platecalculator
 
-import android.app.Activity
 import android.content.Context
 import android.content.SharedPreferences
-import android.content.res.Configuration
-import android.opengl.Visibility
-import android.os.Build
-import androidx.appcompat.app.AppCompatActivity
 import android.os.Bundle
 import android.text.Editable
 import android.text.TextWatcher
 import android.util.Log
 import android.view.View
 import android.view.ViewGroup
-import android.view.inputmethod.InputMethodManager
 import android.widget.*
+import androidx.appcompat.app.AppCompatActivity
 import androidx.constraintlayout.widget.ConstraintLayout
 import androidx.constraintlayout.widget.ConstraintSet
-import com.google.android.material.snackbar.Snackbar
+
 import com.silas.platecalculator.Constants.BARBELL_WEIGHT_KG
 import com.silas.platecalculator.Constants.BARBELL_WEIGHT_LB
 import com.silas.platecalculator.Constants.FIRST_SLOT_MARGIN
@@ -37,19 +32,26 @@ import com.silas.platecalculator.Constants.PLATE6_KG
 import com.silas.platecalculator.Constants.PLATE6_LB
 import com.silas.platecalculator.Constants.PLATE7_KG
 import com.silas.platecalculator.Constants.PLATE7_LB
+import com.silas.platecalculator.Constants.PLATE_KG_ARRAY
+import com.silas.platecalculator.Constants.PLATE_LB_ARRAY
 import com.silas.platecalculator.Constants.SLOT_MARGIN
-import kotlinx.android.synthetic.main.activity_main.*
-import java.lang.NumberFormatException
 import kotlin.math.roundToInt
 
-class MainActivity : AppCompatActivity(), AdapterView.OnItemSelectedListener {
+class MainActivity : AppCompatActivity(), AdapterView.OnItemSelectedListener,
+    WeightPlateNumberDialog.NoticeDialogListener {
+    private val PLATE_COUNT_DEFUALT = -1
+
     private var use25KG: Boolean = true
     private lateinit var currentUnit: String
 
     lateinit var prefs: SharedPreferences
+
     lateinit var weightEditText: EditText
     lateinit var unitSpinner: Spinner
     lateinit var weightSeekBar: SeekBar
+
+    val numWeightPlateMap: MutableMap<String, Pair<TextView, Int>> = mutableMapOf()
+    val numWeightPlateArray = arrayListOf<String>()
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -58,7 +60,8 @@ class MainActivity : AppCompatActivity(), AdapterView.OnItemSelectedListener {
         prefs = getPreferences(Context.MODE_PRIVATE)
         weightEditText = findViewById(R.id.barbell_weight_edittext)
         weightSeekBar = findViewById(R.id.weight_seek_bar)
-        currentUnit = prefs.getString(getString(R.string.storedUnit), getString(R.string.KG)).toString()
+        currentUnit =
+            prefs.getString(getString(R.string.storedUnit), getString(R.string.KG)).toString()
 
         setupWeightPlateLabels()
 
@@ -76,7 +79,7 @@ class MainActivity : AppCompatActivity(), AdapterView.OnItemSelectedListener {
         }
         unitSpinner.onItemSelectedListener = this
 
-        weightEditText.addTextChangedListener(object:
+        weightEditText.addTextChangedListener(object :
             TextWatcher {
             override fun afterTextChanged(s: Editable?) {}
 
@@ -87,14 +90,14 @@ class MainActivity : AppCompatActivity(), AdapterView.OnItemSelectedListener {
             }
         })
 
-        weightSeekBar.max = if(currentUnit == getString(R.string.KG)) {
+        weightSeekBar.max = if (currentUnit == getString(R.string.KG)) {
             MAX_WEIGHT_KG
         } else {
             MAX_WEIGHT_LB
         }
         try {
             val weight = prefs.getFloat(getString(R.string.storedWeight), 0.0F)
-            weightSeekBar.progress = if(currentUnit == getString(R.string.KG)) {
+            weightSeekBar.progress = if (currentUnit == getString(R.string.KG)) {
                 weight.toInt()
             } else {
                 weight.toInt()
@@ -123,7 +126,8 @@ class MainActivity : AppCompatActivity(), AdapterView.OnItemSelectedListener {
             use25KG = isChecked
             updateBarbell()
 
-            findViewById<TextView>(R.id.plate_weight_label1).visibility = if (isChecked) View.VISIBLE else View.INVISIBLE
+            findViewById<TextView>(R.id.plate_weight_label1).visibility =
+                if (isChecked) View.VISIBLE else View.INVISIBLE
         }
     }
 
@@ -131,8 +135,9 @@ class MainActivity : AppCompatActivity(), AdapterView.OnItemSelectedListener {
         super.onResume()
 
         val savedWeight = prefs.getFloat(getString(R.string.storedWeight), 0.0F)
-        currentUnit = prefs.getString(getString(R.string.storedUnit), getString(R.string.KG)).toString()
-        if(savedWeight != 0.0F) {
+        currentUnit =
+            prefs.getString(getString(R.string.storedUnit), getString(R.string.KG)).toString()
+        if (savedWeight != 0.0F) {
             weightEditText.setText(savedWeight.toString())
             updateBarbell()
         }
@@ -142,12 +147,16 @@ class MainActivity : AppCompatActivity(), AdapterView.OnItemSelectedListener {
         super.onPause()
 
         try {
-            prefs.edit().putFloat(getString(R.string.storedWeight), weightEditText.text.toString().toFloat()).apply()
+            prefs.edit().putFloat(
+                getString(R.string.storedWeight),
+                weightEditText.text.toString().toFloat()
+            ).apply()
         } catch (e: NumberFormatException) {
             Log.e("onPause", "weight edit text does not contain a number")
         }
 
-        prefs.edit().putString(getString(R.string.storedUnit), unitSpinner.selectedItem.toString()).apply()
+        prefs.edit().putString(getString(R.string.storedUnit), unitSpinner.selectedItem.toString())
+            .apply()
     }
 
     private fun setup25Switch() {
@@ -155,20 +164,53 @@ class MainActivity : AppCompatActivity(), AdapterView.OnItemSelectedListener {
         val wtUnitSpinner = findViewById<Spinner>(R.id.barbell_weight_unit_spinner)
         val weightUnit = wtUnitSpinner?.selectedItem ?: getString(R.string.KG)
 
-        switch.text = if(weightUnit == getString(R.string.KG)) getString(R.string.use25SwitchTextKG) else getString(R.string.use25SwitchTextLB)
+        switch.text =
+            if (weightUnit == getString(R.string.KG)) getString(R.string.use25SwitchTextKG) else getString(
+                R.string.use25SwitchTextLB
+            )
     }
 
     private fun setupWeightPlateLabels() {
+        val plateWeightLabelPre = "plate_weight_label"
+
         val wtUnitSpinner = findViewById<Spinner>(R.id.barbell_weight_unit_spinner)
         val weightUnit = wtUnitSpinner?.selectedItem ?: getString(R.string.KG)
 
-        findViewById<TextView>(R.id.plate_weight_label1).text = if(weightUnit == getString(R.string.KG)) PLATE1_KG.toString() else PLATE1_LB.toString()
-        findViewById<TextView>(R.id.plate_weight_label2).text = if(weightUnit == getString(R.string.KG)) PLATE2_KG.toString() else PLATE2_LB.toString()
-        findViewById<TextView>(R.id.plate_weight_label3).text = if(weightUnit == getString(R.string.KG)) PLATE3_KG.toString() else PLATE3_LB.toString()
-        findViewById<TextView>(R.id.plate_weight_label4).text = if(weightUnit == getString(R.string.KG)) PLATE4_KG.toString() else PLATE4_LB.toString()
-        findViewById<TextView>(R.id.plate_weight_label5).text = if(weightUnit == getString(R.string.KG)) PLATE5_KG.toString() else PLATE5_LB.toString()
-        findViewById<TextView>(R.id.plate_weight_label6).text = if(weightUnit == getString(R.string.KG)) PLATE6_KG.toString() else PLATE6_LB.toString()
-        findViewById<TextView>(R.id.plate_weight_label7).text = if(weightUnit == getString(R.string.KG)) PLATE7_KG.toString() else PLATE7_LB.toString()
+        for (i in 0..6) {
+            val plateWeightLabelFull = plateWeightLabelPre + (i + 1)
+            numWeightPlateMap[plateWeightLabelFull] =
+                Pair(
+                    findViewById(resources.getIdentifier(plateWeightLabelFull, "id", packageName)),
+                    prefs.getInt(plateWeightLabelFull, PLATE_COUNT_DEFUALT)
+                )
+            numWeightPlateArray.add(i, plateWeightLabelFull)
+
+            numWeightPlateMap[plateWeightLabelFull]?.first?.text =
+                if (weightUnit == getString(R.string.KG)) PLATE_KG_ARRAY[i].toString() else PLATE_LB_ARRAY[i].toString()
+            numWeightPlateMap[plateWeightLabelFull]?.first?.setOnClickListener {
+                weightPlateLabelOnClickListener(
+                    plateWeightLabelFull
+                )
+            }
+        }
+    }
+
+    private fun weightPlateLabelOnClickListener(label: String) {
+        val dialog = WeightPlateNumberDialog(
+            label,
+            if (numWeightPlateMap[label]?.second != PLATE_COUNT_DEFUALT) numWeightPlateMap[label]?.second else null
+        )
+        dialog.show(supportFragmentManager, "WeightPlateDialogFragment")
+    }
+
+    override fun onDialogPositiveClick(value: Number, label: String) {
+        numWeightPlateMap[label]?.let {
+
+            prefs.edit().putInt(label, value as Int).apply()
+            numWeightPlateMap[label] = Pair(it.first, value)
+        }
+
+        updateBarbell()
     }
 
     override fun onNothingSelected(parent: AdapterView<*>?) {}
@@ -176,7 +218,7 @@ class MainActivity : AppCompatActivity(), AdapterView.OnItemSelectedListener {
     override fun onItemSelected(parent: AdapterView<*>?, view: View?, position: Int, id: Long) {
         // called everytime the view is redrawn (orientation change, when the activity start, etc), so
         // we need to make sure we actually want to covert the weights
-        if(currentUnit != parent?.getItemAtPosition(position)) {
+        if (currentUnit != parent?.getItemAtPosition(position)) {
             // try to convert the current weight
             try {
                 currentUnit = parent?.getItemAtPosition(position).toString()
@@ -204,7 +246,7 @@ class MainActivity : AppCompatActivity(), AdapterView.OnItemSelectedListener {
 
     private fun updateBarbell(selectedUnit: String = "") {
         var weightUnit = selectedUnit
-        if(selectedUnit.isBlank()) {
+        if (selectedUnit.isBlank()) {
             val wtUnitSpinner = findViewById<Spinner>(R.id.barbell_weight_unit_spinner)
             wtUnitSpinner?.let { weightUnit = it.selectedItem as String }
         }
@@ -216,21 +258,26 @@ class MainActivity : AppCompatActivity(), AdapterView.OnItemSelectedListener {
         }
     }
 
-    private fun updateBarbellKG(){
+    private fun updateBarbellKG() {
         val weightEditText = findViewById<EditText>(R.id.barbell_weight_edittext)
         val constraintLayout = findViewById<ConstraintLayout>(R.id.barbell_plates_constraint_layout)
         var resourceIdToSet: Int
         var previousPlateId: Int
         var plateId = 0
         var firstSlotEmpty = true
+        var platesUsedArray = arrayListOf(0,0,0,0,0,0,0)
 
-        var weight = try { weightEditText.text.toString().toDouble() } catch (e: NumberFormatException) { Log.d("updateBarbellKG", e.stackTrace.toString()); return }
+        var weight = try {
+            weightEditText.text.toString().toDouble()
+        } catch (e: NumberFormatException) {
+            Log.d("updateBarbellKG", e.stackTrace.toString()); return
+        }
 
         /* make sure we don't have any plates on there currently, in case we are removing weight */
         constraintLayout.removeAllViews()
 
         /* make sure too much doesn't crash the program */
-        if(weight > MAX_WEIGHT_KG) {
+        if (weight > MAX_WEIGHT_KG) {
             weightEditText.setText(MAX_WEIGHT_KG.toString())
             return
         }
@@ -241,28 +288,35 @@ class MainActivity : AppCompatActivity(), AdapterView.OnItemSelectedListener {
         /* adjust for just showing one half of the bar */
         weight /= 2
 
-        while(weight > 0) {
+        while (weight > 0) {
             // first determine the icon we want to use
-            if(weight >= PLATE1_KG && use25KG) {
+            if (weight >= PLATE1_KG && use25KG && (numWeightPlateMap[numWeightPlateArray[0]]?.second!! == PLATE_COUNT_DEFUALT || platesUsedArray[0] < numWeightPlateMap[numWeightPlateArray[0]]?.second!!)) {
                 resourceIdToSet = R.drawable.ic_25kg
                 weight -= PLATE1_KG
-            } else if(weight >= PLATE2_KG) {
+                platesUsedArray[0] += 1
+            } else if (weight >= PLATE2_KG && (numWeightPlateMap[numWeightPlateArray[1]]?.second!! == PLATE_COUNT_DEFUALT || platesUsedArray[1] < numWeightPlateMap[numWeightPlateArray[1]]?.second!!)) {
                 resourceIdToSet = R.drawable.ic_20kg
+                platesUsedArray[1] += 1
                 weight -= PLATE2_KG
-            } else if (weight >= PLATE3_KG) {
+            } else if (weight >= PLATE3_KG && (numWeightPlateMap[numWeightPlateArray[2]]?.second!! == PLATE_COUNT_DEFUALT || platesUsedArray[2] < numWeightPlateMap[numWeightPlateArray[2]]?.second!!)) {
                 resourceIdToSet = R.drawable.ic_15kg
+                platesUsedArray[2] += 1
                 weight -= PLATE3_KG
-            } else if (weight >= PLATE4_KG) {
+            } else if (weight >= PLATE4_KG && (numWeightPlateMap[numWeightPlateArray[3]]?.second!! == PLATE_COUNT_DEFUALT || platesUsedArray[3] < numWeightPlateMap[numWeightPlateArray[3]]?.second!!)) {
                 resourceIdToSet = R.drawable.ic_10kg
+                platesUsedArray[3] += 1
                 weight -= PLATE4_KG
-            } else if(weight >= PLATE5_KG) {
+            } else if (weight >= PLATE5_KG && (numWeightPlateMap[numWeightPlateArray[4]]?.second!! == PLATE_COUNT_DEFUALT || platesUsedArray[4] < numWeightPlateMap[numWeightPlateArray[4]]?.second!!)) {
                 resourceIdToSet = R.drawable.ic_5kg
+                platesUsedArray[4] += 1
                 weight -= PLATE5_KG
-            } else if(weight >= PLATE6_KG) {
+            } else if (weight >= PLATE6_KG && (numWeightPlateMap[numWeightPlateArray[5]]?.second!! == PLATE_COUNT_DEFUALT || platesUsedArray[5] < numWeightPlateMap[numWeightPlateArray[5]]?.second!!)) {
                 resourceIdToSet = R.drawable.ic_2_5kg
+                platesUsedArray[5] += 1
                 weight -= PLATE6_KG
-            } else if(weight >= PLATE7_KG) {
+            } else if (weight >= PLATE7_KG && (numWeightPlateMap[numWeightPlateArray[6]]?.second!! == PLATE_COUNT_DEFUALT || platesUsedArray[6] < numWeightPlateMap[numWeightPlateArray[6]]?.second!!)) {
                 resourceIdToSet = R.drawable.ic_1_25kg
+                platesUsedArray[6] += 1
                 weight -= PLATE7_KG
             } else {
                 break // TODO display some additional weight needed message to the user
@@ -285,8 +339,18 @@ class MainActivity : AppCompatActivity(), AdapterView.OnItemSelectedListener {
             constraintSet.clone(constraintLayout)
 
             /* connect image to top and bottom of the barbell */
-            constraintSet.connect(imageView.id, ConstraintSet.BOTTOM, constraintLayout.id, ConstraintSet.BOTTOM)
-            constraintSet.connect(imageView.id, ConstraintSet.TOP, constraintLayout.id, ConstraintSet.TOP)
+            constraintSet.connect(
+                imageView.id,
+                ConstraintSet.BOTTOM,
+                constraintLayout.id,
+                ConstraintSet.BOTTOM
+            )
+            constraintSet.connect(
+                imageView.id,
+                ConstraintSet.TOP,
+                constraintLayout.id,
+                ConstraintSet.TOP
+            )
 
             /* if the first slot is empty we need a larger margin, and to connect to the barbell not the plate in front */
             if (firstSlotEmpty) {
@@ -313,21 +377,26 @@ class MainActivity : AppCompatActivity(), AdapterView.OnItemSelectedListener {
         }
     }
 
-    private fun updateBarbellLB(){
+    private fun updateBarbellLB() {
         val weightEditText = findViewById<EditText>(R.id.barbell_weight_edittext);
         val constraintLayout = findViewById<ConstraintLayout>(R.id.barbell_plates_constraint_layout)
         var resourceIdToSet: Int
         var previousPlateId: Int
         var plateId = 0
         var firstSlotEmpty = true
+        var platesUsedArray = arrayListOf(0,0,0,0,0,0,0)
 
-        var weight = try { weightEditText.text.toString().toDouble() } catch (e: NumberFormatException) { Log.d("updateBarbellLB", e.stackTrace.toString()); return }
+        var weight = try {
+            weightEditText.text.toString().toDouble()
+        } catch (e: NumberFormatException) {
+            Log.d("updateBarbellLB", e.stackTrace.toString()); return
+        }
 
         /* make sure we don't have any plates on there currently, in case we are removing weight */
         constraintLayout.removeAllViews()
 
         /* make sure too much doesn't crash the program */
-        if(weight > MAX_WEIGHT_LB) {
+        if (weight > MAX_WEIGHT_LB) {
             weightEditText.setText(MAX_WEIGHT_LB.toString())
             return
         }
@@ -338,29 +407,36 @@ class MainActivity : AppCompatActivity(), AdapterView.OnItemSelectedListener {
         /* adjust for just showing one half of the bar */
         weight /= 2
 
-        while(weight > 0) {
+        while (weight > 0) {
             // first determine the icon we want to use
-            if(weight >= PLATE1_LB && use25KG) {
+            if (weight >= PLATE1_LB && use25KG && (numWeightPlateMap[numWeightPlateArray[0]]?.second!! == PLATE_COUNT_DEFUALT || platesUsedArray[0] < numWeightPlateMap[numWeightPlateArray[0]]?.second!!)) {
                 resourceIdToSet = R.drawable.ic_25kg
                 weight -= PLATE1_LB
-            } else if(weight >= PLATE2_LB) {
+                platesUsedArray[0] += 1
+            } else if (weight >= PLATE2_LB && (numWeightPlateMap[numWeightPlateArray[1]]?.second!! == PLATE_COUNT_DEFUALT || platesUsedArray[1] < numWeightPlateMap[numWeightPlateArray[1]]?.second!!)) {
                 resourceIdToSet = R.drawable.ic_20kg
                 weight -= PLATE2_LB
-            } else if (weight >= PLATE3_LB) {
+                platesUsedArray[1] += 1
+            } else if (weight >= PLATE3_LB && (numWeightPlateMap[numWeightPlateArray[2]]?.second!! == PLATE_COUNT_DEFUALT || platesUsedArray[2] < numWeightPlateMap[numWeightPlateArray[2]]?.second!!)) {
                 resourceIdToSet = R.drawable.ic_15kg
                 weight -= PLATE3_LB
-            } else if (weight >= PLATE4_LB) {
+                platesUsedArray[2] += 1
+            } else if (weight >= PLATE4_LB && (numWeightPlateMap[numWeightPlateArray[3]]?.second!! == PLATE_COUNT_DEFUALT || platesUsedArray[3] < numWeightPlateMap[numWeightPlateArray[3]]?.second!!)) {
                 resourceIdToSet = R.drawable.ic_10kg
                 weight -= PLATE4_LB
-            } else if(weight >= PLATE5_LB) {
+                platesUsedArray[3] += 1
+            } else if (weight >= PLATE5_LB && (numWeightPlateMap[numWeightPlateArray[4]]?.second!! == PLATE_COUNT_DEFUALT || platesUsedArray[4] < numWeightPlateMap[numWeightPlateArray[4]]?.second!!)) {
                 resourceIdToSet = R.drawable.ic_5kg
                 weight -= PLATE5_LB
-            } else if(weight >= PLATE6_LB) {
+                platesUsedArray[4] += 1
+            } else if (weight >= PLATE6_LB && (numWeightPlateMap[numWeightPlateArray[5]]?.second!! == PLATE_COUNT_DEFUALT || platesUsedArray[5] < numWeightPlateMap[numWeightPlateArray[5]]?.second!!)) {
                 resourceIdToSet = R.drawable.ic_2_5kg
                 weight -= PLATE6_LB
-            } else if(weight >= PLATE7_LB) {
+                platesUsedArray[5] += 1
+            } else if (weight >= PLATE7_LB && (numWeightPlateMap[numWeightPlateArray[6]]?.second!! == PLATE_COUNT_DEFUALT || platesUsedArray[6] < numWeightPlateMap[numWeightPlateArray[6]]?.second!!)) {
                 resourceIdToSet = R.drawable.ic_1_25kg
                 weight -= PLATE7_LB
+                platesUsedArray[6] += 1
             } else {
                 break // TODO display some additional weight needed message to the user
             }
@@ -382,8 +458,18 @@ class MainActivity : AppCompatActivity(), AdapterView.OnItemSelectedListener {
             constraintSet.clone(constraintLayout)
 
             /* connect image to top and bottom of the barbell */
-            constraintSet.connect(imageView.id, ConstraintSet.BOTTOM, constraintLayout.id, ConstraintSet.BOTTOM)
-            constraintSet.connect(imageView.id, ConstraintSet.TOP, constraintLayout.id, ConstraintSet.TOP)
+            constraintSet.connect(
+                imageView.id,
+                ConstraintSet.BOTTOM,
+                constraintLayout.id,
+                ConstraintSet.BOTTOM
+            )
+            constraintSet.connect(
+                imageView.id,
+                ConstraintSet.TOP,
+                constraintLayout.id,
+                ConstraintSet.TOP
+            )
 
             /* if the first slot is empty we need a larger margin, and to connect to the barbell not the plate in front */
             if (firstSlotEmpty) {
@@ -410,3 +496,4 @@ class MainActivity : AppCompatActivity(), AdapterView.OnItemSelectedListener {
         }
     }
 }
+

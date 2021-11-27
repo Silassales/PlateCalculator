@@ -9,4 +9,7 @@
     <string name="use25SwitchTextLB">Use 55LB?</string>
     <string name="storedWeight">weight</string>
     <string name="storedUnit">unit</string>
+    <string name="ok">OK</string>
+    <string name="select">Select</string>
+    <string name="cancel">Cancel</string>
 </resources>
